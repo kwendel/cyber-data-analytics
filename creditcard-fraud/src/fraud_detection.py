@@ -34,7 +34,6 @@ from itertools import groupby
 import numpy as np
 
 
-
 def string_to_timestamp(date_string):  # convert time string to float value
     time_stamp = time.strptime(date_string, '%Y-%m-%d %H:%M:%S')
     return time.mktime(time_stamp)
@@ -91,7 +90,7 @@ def aggregate_mean(before_aggregate):
                 group_unit = []
             if len(zip(group_unit)) >= 2:
                 # print zip(group_unit)
-                for feature_i in xrange(14):
+                for feature_i in range(14):
                     # print zip(group_unit)[feature_i]
                     mean.append(sum(zip(*group_unit)[feature_i]) / len(zip(group_unit)))
                 after_aggregate.append(mean)
@@ -102,8 +101,8 @@ def aggregate_mean(before_aggregate):
     return after_aggregate
 
 
-if __name__ == "__main__":
-    src = '/Users/Qlin/Documents/TA/fraud_credit_card/data_for_student_case.csv'
+def exec():
+    src = 'data/data.csv'
     ah = open(src, 'r')
     x = []  # contains features
     y = []  # contains labels
@@ -143,7 +142,7 @@ if __name__ == "__main__":
             label = 0  # label save
         verification = line_ah.strip().split(',')[10]  # shopper provide CVC code or not
         verification_set.add(verification)
-        cvcresponse = line_ah.strip().split(',')[11]  # 0 = Unknown, 1=Match, 2=No Match, 3-6=Not checked
+        cvcresponse = int(line_ah.strip().split(',')[11])  # 0 = Unknown, 1=Match, 2=No Match, 3-6=Not checked
         if cvcresponse > 2:
             cvcresponse = 3
         year_info = datetime.datetime.strptime(line_ah.strip().split(',')[12], '%Y-%m-%d %H:%M:%S').year
@@ -161,7 +160,7 @@ if __name__ == "__main__":
         card_id_set.add(card_id)
         data.append([issuercountry, txvariantcode, issuer_id, amount, currencycode,
                      shoppercountry, interaction, verification, cvcresponse, creationdate_stamp,
-                     accountcode, mail_id, ip_id, card_id, label, creationdate])  # add the interested features here
+                     accountcode, mail_id, ip_id, card_id, creationdate, bookingdate, label])  # add the interested features here
         # y.append(label)# add the labels
     data = sorted(data, key=lambda k: k[-1])
     day_aggregate = aggregate(data, 'day')
@@ -190,8 +189,8 @@ if __name__ == "__main__":
     plt.savefig('Client Aggregating.png')
 
     for item in data:  # split data into x,y
-        x.append(item[0:-2])
-        y.append(item[-2])
+        x.append(item[0:-1])
+        y.append(item[-1])
     '''map number to each categorial feature'''
 
     for item in list(issuercountry_set):
@@ -224,19 +223,19 @@ if __name__ == "__main__":
     # x_mean = []
     # x_mean = aggregate_mean(x);
     x_mean = x
-    des = '/Users/Qlin/Documents/TA/fraud_credit_card/original_data.csv'
-    des1 = '/Users/Qlin/Documents/TA/fraud_credit_card/aggregate_data.csv'
-    ch_dfa = open(des, 'w')
-    # ch_dfa.write('txid,bookingdate,issuercountrycode,txvariantcode,bin,amount,'+
-    #             'currencycode,shoppercountrycode,shopperinteraction,simple_journal,'+
-    #            'cardverificationcodesupplied,cvcresponsecode,creationdate,accountcode,mail_id,ip_id,card_id')
-    # ch_dfa.write('\n')
+    des = 'data/original_data.csv'
+    des1 = 'data/aggregate_data.csv'
+    ch_dfa = open(des, 'w+')
+    ch_dfa.write('txid,bookingdate,issuercountrycode,txvariantcode,bin,amount,' +
+                 'currencycode,shoppercountrycode,shopperinteraction,simple_journal,' +
+                 'cardverificationcodesupplied,cvcresponsecode,creationdate,accountcode,mail_id,ip_id,card_id')
+    ch_dfa.write('\n')
     sentence = []
     for i in range(len(x_mean)):
         for j in range(len(x_mean[i])):
             sentence.append(str(x_mean[i][j]))
         sentence.append(str(y[i]))
-        ch_dfa.write(' '.join(sentence))
+        ch_dfa.write(','.join(sentence))
         ch_dfa.write('\n')
         sentence = []
         ch_dfa.flush()
@@ -264,6 +263,6 @@ if __name__ == "__main__":
     print('FP: ' + str(FP))
     print('FN: ' + str(FN))
     print('TN: ' + str(TN))
-    print(confusion_matrix(y_test, y_predict))  # watch out the element in confusion matrix
+    print(confusion_matrix(y_test, y_predict)) # watch out the element in confusion matrix
     precision, recall, thresholds = precision_recall_curve(y_test, y_predict)
     predict_proba = clf.predict_proba(x_test)  # the probability of each smple labelled to positive or negative
