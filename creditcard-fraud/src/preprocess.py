@@ -1,10 +1,19 @@
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
+def aggregator_per_card(df):
+    # Each df is a dataframe with all transactions for that card
+    # Sort on creation date
+    df = df.sort_values(by='creationdate', axis=0)
+
+    # Aggregrate transaction amount per day
+    df['day_sum'] = df.rolling("1d", on="creationdate")['amount'].sum()
+
+    return df
 
 def parse_data(input_path):
     # Read csv with pandas
-    df = pd.read_csv(input_path)
+    df = pd.read_csv(input_path, parse_dates=['bookingdate', 'creationdate'])
 
     # Drop rows with column bin=NaN, email=NaN, currencycode=Nan
     df = df[df['bin'].notna()]
@@ -25,6 +34,9 @@ def parse_data(input_path):
     df['shopperinteraction'] = df['shopperinteraction'].map("{}".format)
     df['cardverificationcodesupplied'] = df['cardverificationcodesupplied'].map("{}".format)
     df['accountcode'] = df['accountcode'].map("{}".format)
+
+    # # Map timestamps to date objects
+    # df['creationdate'] = df['creationdate'].map(pd.Timestamp)
 
     return df
 
