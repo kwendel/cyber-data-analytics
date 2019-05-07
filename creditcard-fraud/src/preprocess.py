@@ -1,5 +1,9 @@
-from sklearn.preprocessing import LabelEncoder
+import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
 
 def aggregator_per_card(df):
     # Each df is a dataframe with all transactions for that card
@@ -53,3 +57,22 @@ def category_to_number(df):
 
     return df
 
+
+def smote_df(df: pd.DataFrame, test_size=0.3):
+    del df['bookingdate']
+    del df['creationdate']
+    del df['mail_id']
+    del df['ip_id']
+    del df['card_id']
+
+    X = np.array(df.ix[:, df.columns != 'simple_journal'])
+    y = np.array(df.ix[:, df.columns == 'simple_journal'])
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
+
+    X_train_res, y_train_res = smote(X_train, y_train)
+    return X_train_res, X_test, y_train_res, y_test
+
+
+def smote(X, y):
+    sm = SMOTE(sampling_strategy='minority', random_state=42, n_jobs=-2)
+    return sm.fit_sample(X, y.ravel())
