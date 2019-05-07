@@ -1,6 +1,7 @@
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
+
 def aggregator_per_card(df):
     # Each df is a dataframe with all transactions for that card
     # Sort on creation date
@@ -10,6 +11,7 @@ def aggregator_per_card(df):
     df['day_sum'] = df.rolling("1d", on="creationdate")['amount'].sum()
 
     return df
+
 
 def parse_data(input_path):
     # Read csv with pandas
@@ -53,3 +55,10 @@ def category_to_number(df):
 
     return df
 
+
+def convert_currency(df):
+    # Transform all amounts to euros -- conversion rates may be slightly off
+    conversion_dict = {'SEK': 0.09703, 'MXN': 0.04358, 'AUD': 0.63161, 'NZD': 0.58377, 'GBP': 1.13355}
+    df['amount_convert'] = df.apply(lambda row: row['amount'] * conversion_dict[row['currencycode']], axis=1)
+
+    return df
