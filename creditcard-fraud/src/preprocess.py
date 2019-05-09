@@ -85,12 +85,6 @@ def split_data_label(df: pd.DataFrame):
 
 
 def smote_df(df: pd.DataFrame, test_size=0.3):
-    # del df['bookingdate']
-    # del df['creationdate']
-    # del df['mail_id']
-    # del df['ip_id']
-    # del df['card_id']
-
     X = np.array(df.ix[:, df.columns != 'simple_journal'])
     y = np.array(df.ix[:, df.columns == 'simple_journal'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
