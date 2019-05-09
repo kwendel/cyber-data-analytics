@@ -56,6 +56,9 @@ def category_to_number(df):
     df['cardverificationcodesupplied'] = enc.fit_transform(df['cardverificationcodesupplied'])
     df['accountcode'] = enc.fit_transform(df['accountcode'])
 
+    # Chargeback is the positive class
+    df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
+
     return df
 
 
@@ -67,12 +70,26 @@ def convert_currency(df):
     return df
 
 
+def split_data_label(df: pd.DataFrame):
+    # Copy such that the original df will not be changed
+    data = df.copy()
+
+    # Save labels
+    y = np.array(data['simple_journal'])
+
+    # Drop the labels from the dataframe and take the rest as features
+    data = data.drop(columns=['simple_journal'])
+    X = np.array(data)
+
+    return X, y
+
+
 def smote_df(df: pd.DataFrame, test_size=0.3):
-    del df['bookingdate']
-    del df['creationdate']
-    del df['mail_id']
-    del df['ip_id']
-    del df['card_id']
+    # del df['bookingdate']
+    # del df['creationdate']
+    # del df['mail_id']
+    # del df['ip_id']
+    # del df['card_id']
 
     X = np.array(df.ix[:, df.columns != 'simple_journal'])
     y = np.array(df.ix[:, df.columns == 'simple_journal'])
