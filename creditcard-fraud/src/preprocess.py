@@ -5,7 +5,7 @@ import pandas as pd
 from imblearn.over_sampling import SMOTE
 from joblib import Parallel, delayed
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 
 def apply_parallel(dfGrouped, func):
@@ -76,6 +76,38 @@ def category_to_number(df):
     df['card_id'] = enc.fit_transform(df['card_id'])
 
     # Chargeback is the positive class
+    df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
+
+    return df
+
+
+def onehot(df: pd.DataFrame):
+    # df = pd.concat((df, pd.get_dummies(df['issuercountrycode'])), 1)
+    # del df['issuercountrycode']
+
+    df = pd.concat((df, pd.get_dummies(df['txvariantcode'])), 1)
+    del df['txvariantcode']
+
+    df = pd.concat((df, pd.get_dummies(df['currencycode'])), 1)
+    del df['currencycode']
+
+    # df = pd.concat((df, pd.get_dummies(df['shoppercountrycode'])), 1)
+    # del df['shoppercountrycode']
+
+    df = pd.concat((df, pd.get_dummies(df['shopperinteraction'])), 1)
+    del df['shopperinteraction']
+
+    # df = pd.concat((df, pd.get_dummies(df['cardverificationcodesupplied'])), 1)
+    # del df['cardverificationcodesupplied']
+
+    # df = pd.concat((df, pd.get_dummies(df['accountcode'])), 1)
+    # del df['accountcode']
+
+    # enc = LabelEncoder()
+    # df['ip_id'] = enc.fit_transform(df['ip_id'])
+    # df['mail_id'] = enc.fit_transform(df['mail_id'])
+    # df['card_id'] = enc.fit_transform(df['card_id'])# Chargeback is the positive class
+
     df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
 
     return df

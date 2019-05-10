@@ -10,7 +10,7 @@ def heatmap(df: pd.DataFrame, x_col, y_col):
 
 
 def bar(df: pd.DataFrame, col):
-    plt.figure(figsize=(30, 6))
+    plt.figure(figsize=(8, 8))
     counts = (df.groupby(['simple_journal'])[col]
               .value_counts(normalize=True)
               .rename('percentage')
@@ -18,4 +18,18 @@ def bar(df: pd.DataFrame, col):
               .reset_index()
               # .sort_values('occupation')
               )
-    sns.barplot(x=col, y="percentage", hue="simple_journal", data=counts)
+
+    # Combine values than are below 1 percent
+    others = counts[counts['percentage'] <= 1].groupby(['simple_journal']).sum().reset_index()
+    others[col] = 'Other'
+    counts = counts[counts['percentage'] > 1]
+
+    counts = counts.append(others, ignore_index=True)
+
+    sns.set(style="whitegrid", font_scale=1.5)
+    barplot = sns.barplot(x=col, y="percentage", hue="simple_journal", data=counts)
+    plt.legend(loc='upper right')
+
+    if col == 'txvariantcode':
+        barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30)
+    barplot.get_figure().savefig('../plots/bar_' + col + ".png", dpi=300, format="png")

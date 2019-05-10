@@ -4,7 +4,7 @@ from sklearn.neural_network import MLPClassifier
 from xgboost import XGBClassifier
 
 from .classify import tenfold_cv
-from .preprocess import parse_data, convert_currency, category_to_number, split_data_label
+from .preprocess import parse_data, convert_currency, category_to_number, split_data_label, onehot
 
 
 def prep():
@@ -16,7 +16,7 @@ def prep():
     # Convert all the amounts to euro
     df = convert_currency(df)
     # Map the categorial features to numbers
-    df = category_to_number(df)
+    # df = category_to_number(df)
 
     # Delete features that are not useful
     # no temporal information is used
@@ -32,22 +32,22 @@ def prep():
     # Remove the amount in the original currency
     del df['amount']
 
-    del df['bin']
-    # del df['amount_convert']
-    del df['txvariantcode']
+    # Remove features that are not usefull
+    # del df['bin']
+    del df['cardverificationcodesupplied']
+    del df['issuercountrycode']
+    del df['shoppercountrycode']
+    del df['accountcode']
 
-    # df = df[['currencycode', 'shoppercountrycode', 'issuercountrycode', 'shopperinteraction',
-    #          'cardverificationcodesupplied', 'cvcresponsecode', 'simple_journal']]
+    df = onehot(df)
 
-    return split_data_label(df)
+    return df
 
 
-def run_white_box():
-    X, y = prep()
-
+def run_white_box(X, y, threshold=0.5):
     # Decision Tree
-    dt = DecisionTreeClassifier(criterion='gini', max_features='sqrt', random_state=42)
-    tenfold_cv(dt, X, y, smote_data=True)
+    dt = DecisionTreeClassifier(criterion='gini', max_features='sqrt', random_state=42, max_depth=50)
+    tenfold_cv(dt, X, y, smote_data=True, threshold=threshold)
 
 
 def run_black_box():
