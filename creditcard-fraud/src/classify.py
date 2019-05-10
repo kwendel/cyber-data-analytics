@@ -7,8 +7,9 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 from .preprocess import smote
 
 
-def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5):
+def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5, predict=True):
     tn, fp, fn, tp = 0, 0, 0, 0
+    preds = []
 
     folds = StratifiedKFold(n_splits=10, random_state=42, shuffle=True)
     for trn_idx, tst_idx in folds.split(X, y):
@@ -22,13 +23,75 @@ def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5):
         # Train and test
         clf.fit(X_train, y_train)
         y_prob = clf.predict_proba(X_test)
+
+        if predict:
+            y_pred = [1 if x >= threshold else 0 for x in y_prob[:, 1]]
+
+            # Show the results of this fold
+            conf = confusion_matrix(y_test, y_pred)
+            # print_confusion_matrix(conf, ['Settled', 'Chargeback'])
+
+            # Sum for the total confusion matrix
+            _tn, _fp, _fn, _tp = conf.ravel()
+            tn += _tn
+            fp += _fp
+            fn += _fn
+            tp += _tp
+        else:
+            preds.append((y_test, y_prob))
+
+    if predict:
+        print('TP: ' + str(tp))
+        print('FP: ' + str(fp))
+        print('FN: ' + str(fn))
+        print('TN: ' + str(tn))
+        print("\n")
+    else:
+        return preds
+
+
+def predict_with_threshold(preds, threshold=0.5):
+    tn, fp, fn, tp = 0, 0, 0, 0
+
+    for (y_test, y_prob) in preds:
         y_pred = [1 if x >= threshold else 0 for x in y_prob[:, 1]]
-
-        # Show the results of this fold
         conf = confusion_matrix(y_test, y_pred)
-        # print_confusion_matrix(conf, ['Settled', 'Chargeback'])
 
-        # Sum for the total confusion matrix
+        _tn, _fp, _fn, _tp = conf.ravel()
+        tn += _tn
+        fp += _fp
+        fn += _fn
+        tp += _tp
+
+    print('TP: ' + str(tp))
+    print('FP: ' + str(fp))
+    print('FN: ' + str(fn))
+    print('TN: ' + str(tn))
+    print("\n")
+
+
+def combine_preds(preds, preds1, preds2):
+    tn, fp, fn, tp = 0, 0, 0, 0
+
+    for i in range(len(preds)):
+        (y_test, y_one) = preds[i]
+        (y_test, y_two) = preds1[i]
+        (y_test, y_three) = preds2[i]
+
+        y_one = [1 if x >= 0.93 else 0 for x in y_one[:, 1]]
+        y_two = [1 if x >= 0.92 else 0 for x in y_two[:, 1]]
+        y_three = [1 if x >= 0.945 else 0 for x in y_three[:, 1]]
+
+        pred = []
+
+        for i in range(len(y_one)):
+            vote = [y_one[i], y_two[i], y_three[1]]
+            if vote.count(1) >= 2:
+                pred.append(1)
+            else:
+                pred.append(0)
+
+        conf = confusion_matrix(y_test, pred)
         _tn, _fp, _fn, _tp = conf.ravel()
         tn += _tn
         fp += _fp
