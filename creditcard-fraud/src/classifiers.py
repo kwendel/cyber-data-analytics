@@ -1,41 +1,34 @@
+from pandas import read_pickle
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from .classify import tenfold_cv, combine_preds
-from .preprocess import parse_data, convert_currency, category_to_number, split_data_label, onehot
+from .preprocess import parse_data, convert_currency, onehot, delete_features
+
+def get_df_aggregated():
+    return read_pickle('../data/df_aggregated.pkl')
 
 
-def prep():
+def read_csv():
     input_path = '../data/data.csv'
 
     ## PREPROCESSING STEPS
     # Load the data
     df = parse_data(input_path)
+
+    return df
+
+
+def prep():
+    df = read_csv()
     # Convert all the amounts to euro
     df = convert_currency(df)
     # Map the categorial features to numbers
     # df = category_to_number(df)
 
-    # Delete features that are not useful
-    # no temporal information is used
-    del df['creationdate']
-    del df['bookingdate']
-    # no aggregation will be done so ids can be removed
-    del df['mail_id']
-    del df['ip_id']
-    del df['card_id']
-    # id must be removed as it contains hidden information:
-    # the original data was first sorted based on chargeback and settled and then ids were assigned
-    del df['txid']
-    # Remove the amount in the original currency
-    del df['amount']
-
-    # Remove features that are not usefull
-    # del df['bin']
-    del df['cardverificationcodesupplied']
-    del df['issuercountrycode']
-    del df['shoppercountrycode']
-    del df['accountcode']
+    df = delete_features(df)
 
     df = onehot(df)
 

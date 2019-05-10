@@ -113,11 +113,21 @@ def roc(clf, X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
     # Without SMOTE
+    print("Without SMOTE")
     clf.fit(X_train, y_train)
     y_prob = clf.predict_proba(X_test)
     y_pred = y_prob[:, 1]
 
+    y_pred_class = [1 if x >= 0.5 else 0 for x in y_pred]
+    conf = confusion_matrix(y_test, y_pred_class)
+    tn, fp, fn, tp = conf.ravel()
+    print('TP: ' + str(tp))
+    print('FP: ' + str(fp))
+    print('FN: ' + str(fn))
+    print('TN: ' + str(tn))
+
     # ROC analysis
+    print("With SMOTE")
     fpr, tpr, threshold = roc_curve(y_test, y_pred)
     roc_auc = auc(fpr, tpr)
     plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
@@ -128,6 +138,14 @@ def roc(clf, X, y):
     clf.fit(X_train, y_train)
     y_prob = clf.predict_proba(X_test)
     y_pred = y_prob[:, 1]
+
+    y_pred_class = [1 if x >= 0.5 else 0 for x in y_pred]
+    conf = confusion_matrix(y_test, y_pred_class)
+    tn, fp, fn, tp = conf.ravel()
+    print('TP: ' + str(tp))
+    print('FP: ' + str(fp))
+    print('FN: ' + str(fn))
+    print('TN: ' + str(tn))
 
     # ROC analysis
     fpr, tpr, threshold = roc_curve(y_test, y_pred)
@@ -141,6 +159,7 @@ def roc(clf, X, y):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
+    plt.savefig('../plots/roc_' + clf.__class__.__name__ + '.png', format='png', dpi=300)
     plt.show()
 
 
