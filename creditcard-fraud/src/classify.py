@@ -5,9 +5,10 @@ from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from .preprocess import smote
+from .plot import tree
 
 
-def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5, predict=True):
+def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5, predict=True, df=None):
     tn, fp, fn, tp = 0, 0, 0, 0
     preds = []
 
@@ -23,6 +24,9 @@ def tenfold_cv(clf, X, y, smote_data=False, threshold=0.5, predict=True):
         # Train and test
         clf.fit(X_train, y_train)
         y_prob = clf.predict_proba(X_test)
+
+        if df is not None:
+            tree(clf, df)
 
         if predict:
             y_pred = [1 if x >= threshold else 0 for x in y_prob[:, 1]]
@@ -78,9 +82,9 @@ def combine_preds(preds, preds1, preds2):
         (y_test, y_two) = preds1[i]
         (y_test, y_three) = preds2[i]
 
-        y_one = [1 if x >= 0.92 else 0 for x in y_one[:, 1]]
+        y_one = [1 if x >= 0.93 else 0 for x in y_one[:, 1]]
         y_two = [1 if x >= 0.91 else 0 for x in y_two[:, 1]]
-        y_three = [1 if x >= 0.93 else 0 for x in y_three[:, 1]]
+        y_three = [1 if x >= 0.94 else 0 for x in y_three[:, 1]]
 
         pred = []
 
