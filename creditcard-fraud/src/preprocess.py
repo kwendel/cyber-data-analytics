@@ -19,10 +19,18 @@ def aggregate_per_card(df: pd.DataFrame):
     df = df.sort_values(by='creationdate', axis=0)
 
     # Aggregrate transaction amount per day
-    df['amount_mean_day'] = df.rolling("1d", on="creationdate")['amount_convert'].mean()
     df['amount_mean_week'] = df.rolling("7d", on="creationdate")['amount_convert'].mean()
     df['amount_mean_month'] = df.rolling("28d", on="creationdate")['amount_convert'].mean()
+    df['amount_day'] = df.rolling("1d", on="creationdate")['amount_convert'].sum()
+    df['count_day'] = df.rolling("1d", on="creationdate")['amount_convert'].count()
+
+    df['same_merchant_country'] = df.rolling(2, min_periods=1)['accountcode'] \
+        .apply(lambda x: 1 if len(x) == len(x.unique()) else 0, raw=False)
     df['same_ip'] = df.rolling(2, min_periods=1)['ip_id'] \
+        .apply(lambda x: 1 if len(x) == len(x.unique()) else 0, raw=False)
+    df['same_mail'] = df.rolling(2, min_periods=1)['mail_id'] \
+        .apply(lambda x: 1 if len(x) == len(x.unique()) else 0, raw=False)
+    df['same_currency'] = df.rolling(2, min_periods=1)['currencycode'] \
         .apply(lambda x: 1 if len(x) == len(x.unique()) else 0, raw=False)
 
     return df
@@ -30,11 +38,13 @@ def aggregate_per_card(df: pd.DataFrame):
 
 def aggregate(df: pd.DataFrame):
     return apply_parallel(df.groupby('card_id'), aggregate_per_card)
-
+    # return df.groupby('card_id').apply(aggregate_per_card)
 
 def parse_data(input_path):
     # Read csv with pandas
     df = pd.read_csv(input_path, parse_dates=['bookingdate', 'creationdate'])
+    print(len(df))
+    print(df['simple_journal'].value_counts())
 
     # Drop rows with column bin=NaN, email=NaN, currencycode=Nan
     df = df[df['bin'].notna()]
@@ -81,6 +91,31 @@ def category_to_number(df):
     return df
 
 
+def delete_features(df):
+    # Delete features that are not useful
+    # no temporal information is used
+    del df['creationdate']
+    del df['bookingdate']
+    # no aggregation will be done so ids can be removed
+    del df['mail_id']
+    del df['ip_id']
+    del df['card_id']
+    # id must be removed as it contains hidden information:
+    # the original data was first sorted based on chargeback and settled and then ids were assigned
+    del df['txid']
+    # Remove the amount in the original currency
+    del df['amount']
+
+    # Remove features that are not useful
+    # del df['bin']
+    del df['cardverificationcodesupplied']
+    del df['issuercountrycode']
+    del df['shoppercountrycode']
+    del df['accountcode']
+
+    return df
+
+
 def onehot(df: pd.DataFrame):
     # df = pd.concat((df, pd.get_dummies(df['issuercountrycode'])), 1)
     # del df['issuercountrycode']
@@ -108,7 +143,7 @@ def onehot(df: pd.DataFrame):
     # df['mail_id'] = enc.fit_transform(df['mail_id'])
     # df['card_id'] = enc.fit_transform(df['card_id'])# Chargeback is the positive class
 
-    df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
+    # df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
 
     return df
 
