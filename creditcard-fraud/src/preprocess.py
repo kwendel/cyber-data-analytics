@@ -1,19 +1,35 @@
+import multiprocessing
+
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
+from joblib import Parallel, delayed
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 
-def aggregator_per_card(df):
+def apply_parallel(dfGrouped, func):
+    retLst = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(func)(group) for name, group in dfGrouped)
+    return pd.concat(retLst)
+
+
+def aggregate_per_card(df: pd.DataFrame):
     # Each df is a dataframe with all transactions for that card
     # Sort on creation date
     df = df.sort_values(by='creationdate', axis=0)
 
     # Aggregrate transaction amount per day
-    df['day_sum'] = df.rolling("1d", on="creationdate")['amount'].sum()
+    df['amount_mean_day'] = df.rolling("1d", on="creationdate")['amount_convert'].mean()
+    df['amount_mean_week'] = df.rolling("7d", on="creationdate")['amount_convert'].mean()
+    df['amount_mean_month'] = df.rolling("28d", on="creationdate")['amount_convert'].mean()
+    df['same_ip'] = df.rolling(2, min_periods=1)['ip_id'] \
+        .apply(lambda x: 1 if len(x) == len(x.unique()) else 0, raw=False)
 
     return df
+
+
+def aggregate(df: pd.DataFrame):
+    return apply_parallel(df.groupby('card_id'), aggregate_per_card)
 
 
 def parse_data(input_path):
@@ -55,6 +71,9 @@ def category_to_number(df):
     df['shopperinteraction'] = enc.fit_transform(df['shopperinteraction'])
     df['cardverificationcodesupplied'] = enc.fit_transform(df['cardverificationcodesupplied'])
     df['accountcode'] = enc.fit_transform(df['accountcode'])
+    df['ip_id'] = enc.fit_transform(df['ip_id'])
+    df['mail_id'] = enc.fit_transform(df['mail_id'])
+    df['card_id'] = enc.fit_transform(df['card_id'])
 
     # Chargeback is the positive class
     df['simple_journal'] = df['simple_journal'].map({'Chargeback': 1, 'Settled': 0})
