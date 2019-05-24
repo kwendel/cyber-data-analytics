@@ -59,3 +59,9 @@ if __name__ == '__main__':
     plot_correlation(df)
     plot_negative_corr(df)
     plot_nocorrelation(df)
+
+    # TODOs:
+    # - outliers
+    # - more time intervals
+    # - maybe show something strange in the data
+    # - analyse training 2 and testing data
