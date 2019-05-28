@@ -5,9 +5,6 @@ from data import parse_to_df, select_between_datetime
 
 
 def plot_correlation(df):
-    # Select data in the first week
-    # df = df.loc[start_day * 24:end_day * 24, :]
-
     # Plot the water level in tank 3 and the force and on/off signal of pump 4 as they are heavenly correlated
     plt.figure()
 
@@ -23,9 +20,6 @@ def plot_correlation(df):
 
 
 def plot_negative_corr(df):
-    # Select data in the first week
-    # df = df.loc[0:7 * 24, :]
-
     # Plot T1 level and the corresponding junctions that are close for negative correlation
     plt.figure()
 
@@ -37,8 +31,6 @@ def plot_negative_corr(df):
 
 
 def plot_nocorrelation(df):
-    # df = df.loc[0:7 * 24, :]
-
     # Plot multiple sensor that are far away from each other, as they are likely not correlated
     plt.figure()
 
