@@ -49,59 +49,63 @@ def plot_nocorrelation(df):
     plt.show()
 
 
-def plot_attack5(df_normal: pd.DataFrame, df_attack: pd.DataFrame):
-    # Plot attack 5 of the training2 dataset
+def __fill_between(df, start, end, top_val):
+    s = df[df['datetime'] == start].index[0]
+    e = df[df['datetime'] == end].index[0]
+
+    plt.fill_between(df.index, 0, top_val, color='r', alpha=0.3,
+                     where=(df.index > s) & (df.index <= e))
+
+
+def plot_attack_pu7(df_attack: pd.DataFrame):
+    # Plot attack 5 & 6 of the training2 dataset
     # Attack 5 & 6 both reduced the working speed of PU7 which led to a lower water level in T4
+
     # Attack 5 - 26/11/2016 17 - 29/11/2016 04 - 60 hours - 6 labeled
     # No SCADA concealment
 
-    # Select the same timeperiod for both dataset
-    # Note that the datasets are from different years, but they are compared to see if there are no seasonal patterns
-
-    # df_normal = select_between_datetime(df_normal, '2014-11-26 17:00:00', '2014-11-29 04:00:00')
-    df_attack = select_between_datetime(df_attack, '2016-11-15 17:00:00', '2016-12-15 04:00:00')
-
-    start = df_attack[df_attack['datetime'] == '2016-11-26 17:00:00'].index[0]
-    print(start)
-    end = df_attack[df_attack['datetime'] == '2016-11-29 04:00:00'].index[0]
-    print(end)
-
-    # plt.figure()
-    # sns.lineplot(df_normal.index, df_normal['f_pu7'], label='Flow P7')
-    # sns.lineplot(df_normal.index, df_normal['l_t4'], label='Level T4')
-    # plt.show()
-
-    def __fill_between(start, end):
-        s = df_attack[df_attack['datetime'] == start].index[0]
-        e = df_attack[df_attack['datetime'] == end].index[0]
-
-        plt.fill_between(df_attack.index, 0, 60, color='r', alpha=0.3,
-                         where=(df_attack.index > s) & (df_attack.index <= e))
-
-    plt.figure()
-    sns.lineplot(df_attack.index, df_attack['f_pu7'], label='Flow P7')
-    sns.lineplot(df_attack.index, df_attack['l_t4'], label='Level T4')
-    __fill_between('2016-11-26 17:00:00', '2016-11-29 04:00:00')
-    plt.show()
-
-
-def plot_attack6(df_normal, df_attack):
-    # Plot attack 5 of the training2 dataset
-    # Attack 5 & 6 both reduced the working speed of PU7 which led to a lower water level in T4
     # Attack 6 - 06/12/2016 07 - 10/12/2016 04 - 94 hours
     # SCADA concealment - L_T4 drop concealed with replay attack
 
-    df_normal = select_between_datetime(df_normal, '2014-12-06 07:00:00', '2014-12-10 04:00:00')
-    df_attack = select_between_datetime(df_attack, '2016-12-06 07:00:00', '2016-12-10 04:00:00')
-
-    plt.figure()
-    sns.lineplot(df_normal.index, df_normal['f_pu7'], label='Flow P7')
-    sns.lineplot(df_normal.index, df_normal['l_t4'], label='Level T4')
-    plt.show()
+    df_attack = select_between_datetime(df_attack, '2016-11-20 17:00:00', '2016-12-15 04:00:00')
 
     plt.figure()
     sns.lineplot(df_attack.index, df_attack['f_pu7'], label='Flow P7')
     sns.lineplot(df_attack.index, df_attack['l_t4'], label='Level T4')
+    __fill_between(df_attack, '2016-11-26 17:00:00', '2016-11-29 04:00:00', 55)
+    __fill_between(df_attack, '2016-12-06 07:00:00', '2016-12-10 04:00:00', 55)
+    plt.show()
+
+
+def plot_attack_t1(df_attack):
+    # Plot attack 3 & 4 of the training2 dataset
+    # Attack 3 & 4 both alter the readings that L_T1 sents to PLC1 to PLC2, which keeps PU1 and PU2 on causing an overflow
+    # Attack 3 - 09/10/2016 09 - 11/10/2016 20 - 60 hours
+    # Attack 4 - 29/10/2016 09 - 02/11/2016 16 - 94 hours
+    # SCADA concealment 3 - Polyline to offset increase L_T1
+    # SCADA concealment 4 - Replay attack on L_T1, PU1 and PU2
+
+    df_attack = select_between_datetime(df_attack, '2016-10-01 04:00:00', '2016-11-09 04:00:00')
+
+    plt.figure()
+    sns.lineplot(df_attack.index, df_attack['f_pu2'], label='Flow P2')
+    sns.lineplot(df_attack.index, df_attack['l_t1'], label='Level T1')
+    __fill_between(df_attack, '2016-10-09 09:00:00', '2016-10-11 20:00:00', 120)
+    __fill_between(df_attack, '2016-10-29 09:00:00', '2016-11-02 16:00:00', 120)
+    plt.show()
+
+
+def plot_attack_t7(df_attack):
+    # Plot attack 1
+    # Attacker changes water L_T7 thresholds which controls PU10 and PU11
+    df_attack = select_between_datetime(df_attack, '2016-09-12 00:00:00', '2016-09-17 00:00:00')
+
+    plt.figure()
+    ax = sns.lineplot(df_attack.index, df_attack['f_pu10'], label='Flow P10')
+    ax = sns.lineplot(df_attack.index, df_attack['f_pu11'], label='Flow P11')
+    ax.lines[1].set_linestyle(":")
+    sns.lineplot(df_attack.index, df_attack['l_t7'], label='Level T7')
+    __fill_between(df_attack, '2016-09-13 23:00:00', '2016-09-16 00:00:00', 35)
     plt.show()
 
 
@@ -117,8 +121,9 @@ if __name__ == '__main__':
     # plot_nocorrelation(df_n[0:7 * 24, :])
 
     # Plots of attacks
-    plot_attack5(df_n, df_a)
-    plot_attack6(df_n, df_a)
+    # plot_attack_pu7(df_a)
+    # plot_attack_t1(df_a)
+    # plot_attack_t7(df_a)
 
     # TODOs:
     # - outliers
