@@ -3,9 +3,10 @@ from math import sqrt
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from data import parse_to_df
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
+
+from data import parse_to_df
 
 
 def forward_validation(train, test, p):
@@ -158,4 +159,3 @@ if __name__ == '__main__':
     sns.set()
     persistence_prediction()
     regression_prediction()
-

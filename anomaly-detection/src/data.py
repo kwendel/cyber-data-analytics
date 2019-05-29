@@ -6,7 +6,7 @@ def select_between_datetime(df, start, end):
     return df[
         (df['datetime'] > start) &
         (df['datetime'] <= end)
-    ]
+        ]
 
 
 def parse_date(date):
