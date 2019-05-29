@@ -8,14 +8,14 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 
-def forward_validation(train, test, persistence):
-    # walk forward validation
+def forward_validation(train, test, p):
+    # Walk forward validation
     history = [x for x in train]
     predictions = list()
 
     for i in range(len(test)):
-        # Make prediction
-        yhat = history[-persistence]
+        # Prediction is the historical value at p timesteps back
+        yhat = history[-p]
         predictions.append(yhat)
         # Add observation
         history.append(test[i])
@@ -36,7 +36,7 @@ def window_regression(X, y, window, end):
         X_tst = X.iloc[time_step, :].to_numpy().reshape(1, -1)  # reshape because it is only a single sample
         y_tst = y.iloc[time_step].to_numpy().reshape(1, -1)
 
-        # Train LR model
+        # Train LR model on the data in the window
         reg.fit(X_trn, y_trn)
 
         # Predict the next step and save
@@ -44,6 +44,7 @@ def window_regression(X, y, window, end):
         preds.append(yhat.item())
         true.append(y_tst.item())
 
+        # Go the next timestep
         time_step += 1
 
     return true, preds
