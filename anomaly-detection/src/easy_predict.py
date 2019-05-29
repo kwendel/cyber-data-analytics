@@ -139,7 +139,7 @@ def regression_prediction():
 
     end = 300
     # Find best rolling window size
-    # find_window_value(X, y, end)
+    find_window_value(X, y, end)
     # Plot shows low RMSE values after w=40
 
     # Rolling window parameters
