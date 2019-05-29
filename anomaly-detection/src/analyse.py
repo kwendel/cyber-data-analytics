@@ -14,7 +14,11 @@ def plot_correlation(df):
 
     # Plot sensor data
     sns.lineplot(df.index, df['l_t3'], label='Level T3')
-    # sns.lineplot(df.index, df['f_pu4'], label='Flow Pump 4')
+    sns.lineplot(df.index, df['f_pu4'], label='Flow Pump 4')
+
+    plt.title("Correlation: Tank 3 and Pump 4", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
 
     plt.show()
 
@@ -27,6 +31,9 @@ def plot_negative_corr(df):
     # sns.lineplot(df.index, df['p_j280'], label='Suction P1')
     sns.lineplot(df.index, df['p_j269'], label='Discharge P1')
 
+    plt.title("Negative correlation: Tank 1 and Junction 269", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
     plt.show()
 
 
@@ -38,6 +45,9 @@ def plot_nocorrelation(df):
     sns.lineplot(df.index, df['l_t4'], label='Level T4')
     sns.lineplot(df.index, df['f_pu8'], label='Flow P8')
 
+    plt.title("No correlation: Tank 1, Tank 4 and Pump 8", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
     plt.show()
 
 
@@ -66,6 +76,10 @@ def plot_attack_pu7(df_attack: pd.DataFrame):
     sns.lineplot(df_attack.index, df_attack['l_t4'], label='Level T4')
     __fill_between(df_attack, '2016-11-26 17:00:00', '2016-11-29 04:00:00', 55)
     __fill_between(df_attack, '2016-12-06 07:00:00', '2016-12-10 04:00:00', 55)
+
+    plt.title("Attack 5 and 6: reduce working speed Pump 7", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
     plt.show()
 
 
@@ -84,6 +98,10 @@ def plot_attack_t1(df_attack):
     sns.lineplot(df_attack.index, df_attack['l_t1'], label='Level T1')
     __fill_between(df_attack, '2016-10-09 09:00:00', '2016-10-11 20:00:00', 120)
     __fill_between(df_attack, '2016-10-29 09:00:00', '2016-11-02 16:00:00', 120)
+
+    plt.title("Attack 3 and 4: alter readings of Tank 1", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
     plt.show()
 
 
@@ -98,27 +116,28 @@ def plot_attack_t7(df_attack):
     ax.lines[1].set_linestyle(":")
     sns.lineplot(df_attack.index, df_attack['l_t7'], label='Level T7')
     __fill_between(df_attack, '2016-09-13 23:00:00', '2016-09-16 00:00:00', 35)
+    plt.title("Attack 1: alter water level thresholds of Tank 7", fontweight='bold')
+    plt.xlabel("Hours from T=0")
+    plt.ylabel("Signal value")
     plt.show()
 
 
-if __name__ == '__main__':
+def data_analysis():
     sns.set()
-
     df_n = parse_to_df('../data/BATADAL_training1.csv')
     df_a = parse_to_df('../data/BATADAL_training2.csv')
 
     # Correlation plots of first week
-    # plot_correlation(df_n[0:7 * 24, :])
-    # plot_negative_corr(df_n[0:7 * 24, :])
-    # plot_nocorrelation(df_n[0:7 * 24, :])
+    plot_correlation(df_n.loc[0:7 * 24, :])
+    plot_negative_corr(df_n.loc[0:7 * 24, :])
+    plot_nocorrelation(df_n.loc[0:7 * 24, :])
 
     # Plots of attacks
-    # plot_attack_pu7(df_a)
-    # plot_attack_t1(df_a)
-    # plot_attack_t7(df_a)
+    plot_attack_pu7(df_a)
+    plot_attack_t1(df_a)
+    plot_attack_t7(df_a)
 
-    # TODOs:
-    # - outliers
-    # - more time intervals
-    # - maybe show something strange in the data
-    # - analyse training 2 and testing data
+
+if __name__ == '__main__':
+    sns.set()
+    data_analysis()
