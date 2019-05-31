@@ -8,6 +8,10 @@ from sklearn.metrics import mean_squared_error
 
 from data import parse_to_df
 
+path_training_1 = '../data/BATADAL_training1.csv'
+path_training_2 = '../data/BATADAL_training2.csv'
+path_testing = '../data/BATADAL_test.csv'
+
 
 def forward_validation(train, test, p):
     # Walk forward validation
@@ -103,7 +107,7 @@ def plot_predictions(x, test, predictions, title="Enter title"):
 
 
 def persistence_prediction():
-    df_n = parse_to_df('../data/BATADAL_training1.csv')
+    df_n = parse_to_df(path_training_1)
 
     # Pick sensor signal and use first 2/3 as trn, rest as test
     column = 'f_pu4'
@@ -127,7 +131,7 @@ def persistence_prediction():
 
 
 def regression_prediction():
-    df_n = parse_to_df('../data/BATADAL_training1.csv')
+    df_n = parse_to_df(path_training_1)
 
     # Regression prediction
     # Previous plots showed that signals are heavenly correlated

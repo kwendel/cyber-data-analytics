@@ -4,6 +4,10 @@ import seaborn as sns
 
 from data import parse_to_df, select_between_datetime
 
+path_training_1 = '../data/BATADAL_training1.csv'
+path_training_2 = '../data/BATADAL_training2.csv'
+path_testing = '../data/BATADAL_test.csv'
+
 
 def plot_correlation(df):
     # Plot the water level in tank 3 and the force and on/off signal of pump 4 as they are heavenly correlated
@@ -125,8 +129,8 @@ def plot_attack_t7(df_attack):
 
 def data_analysis():
     sns.set()
-    df_n = parse_to_df('../data/BATADAL_training1.csv')
-    df_a = parse_to_df('../data/BATADAL_training2.csv')
+    df_n = parse_to_df(path_training_1)
+    df_a = parse_to_df(path_training_2)
 
     # Correlation plots of first week
     plot_correlation(df_n.loc[0:7 * 24, :])
