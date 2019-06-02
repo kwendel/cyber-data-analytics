@@ -182,7 +182,7 @@ def plot_abnormalities():
 if __name__ == '__main__':
     sns.set()
     # Plot the abnormalities in the training data which are set to the normal mean of the data
-    # plot_abnormalities()
+    plot_abnormalities()
 
     # Define data
     df_normal = parse_to_df(path_training_1)
