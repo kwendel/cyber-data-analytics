@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from data import parse_to_df, select_between_datetime
+from .data import parse_to_df, select_between_datetime
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
 path_testing = '../data/BATADAL_test.csv'
+
+sns.set()
 
 
 def plot_correlation(df):
@@ -25,6 +28,9 @@ def plot_correlation(df):
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
 
+    print(np.corrcoef([df['l_t3'], df['f_pu4'], df['s_pu4']]))
+
+    plt.savefig("../plots/correlation.png")
     plt.show()
 
 
@@ -34,11 +40,15 @@ def plot_negative_corr(df):
 
     sns.lineplot(df.index, df['f_pu1'], label='Flow P1')
     # sns.lineplot(df.index, df['p_j280'], label='Suction P1')
-    sns.lineplot(df.index, df['p_j269'], label='Discharge P1')
+    sns.lineplot(df.index, df['p_j269'], label='Discharge J269')
 
-    plt.title("Negative correlation: Tank 1 and Junction 269", fontweight='bold')
+    plt.title("Negative correlation: Pump 1 and Junction 269", fontweight='bold')
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+
+    print(np.corrcoef([df['f_pu1'], df['p_j269']]))
+
+    plt.savefig("../plots/neg_correlation.png")
     plt.show()
 
 
@@ -53,6 +63,10 @@ def plot_nocorrelation(df):
     plt.title("No correlation: Tank 1, Tank 4 and Pump 8", fontweight='bold')
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+
+    print(np.corrcoef([df['l_t1'], df['l_t4'], df['f_pu8']]))
+
+    plt.savefig("../plots/no_correlation.png")
     plt.show()
 
 
@@ -64,7 +78,7 @@ def __fill_between(df, start, end, top_val):
                      where=(df.index > s) & (df.index <= e))
 
 
-def plot_attack_pu7(df_attack: pd.DataFrame):
+def plot_attack_5_6(df_attack: pd.DataFrame):
     # Plot attack 5 & 6 of the training2 dataset
     # Attack 5 & 6 both reduced the working speed of PU7 which led to a lower water level in T4
 
@@ -85,10 +99,12 @@ def plot_attack_pu7(df_attack: pd.DataFrame):
     plt.title("Attack 5 and 6: reduce working speed Pump 7", fontweight='bold')
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+
+    plt.savefig("../plots/attack_5_6.png")
     plt.show()
 
 
-def plot_attack_t1(df_attack):
+def plot_attack_3_4(df_attack):
     # Plot attack 3 & 4 of the training2 dataset
     # Attack 3 & 4 both alter the readings that L_T1 sents to PLC1 to PLC2, which keeps PU1 and PU2 on causing an overflow
     # Attack 3 - 09/10/2016 09 - 11/10/2016 20 - 60 hours
@@ -107,10 +123,12 @@ def plot_attack_t1(df_attack):
     plt.title("Attack 3 and 4: alter readings of Tank 1", fontweight='bold')
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+
+    # plt.savefig("../plots/attack_3_4.png")
     plt.show()
 
 
-def plot_attack_t7(df_attack):
+def plot_attack_1(df_attack):
     # Plot attack 1
     # Attacker changes water L_T7 thresholds which controls PU10 and PU11
     df_attack = select_between_datetime(df_attack, '2016-09-12 00:00:00', '2016-09-17 00:00:00')
@@ -124,11 +142,13 @@ def plot_attack_t7(df_attack):
     plt.title("Attack 1: alter water level thresholds of Tank 7", fontweight='bold')
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+
+    # plt.savefig("../plots/attack_1.png")
     plt.show()
 
 
 def data_analysis():
-    sns.set()
+    # sns.set()
     df_n = parse_to_df(path_training_1)
     df_a = parse_to_df(path_training_2)
 
@@ -138,11 +158,11 @@ def data_analysis():
     plot_nocorrelation(df_n.loc[0:7 * 24, :])
 
     # Plots of attacks
-    plot_attack_pu7(df_a)
-    plot_attack_t1(df_a)
-    plot_attack_t7(df_a)
+    plot_attack_5_6(df_a)
+    plot_attack_3_4(df_a)
+    plot_attack_1(df_a)
 
 
 if __name__ == '__main__':
-    sns.set()
+    sns.set(font_scale=1.5)
     data_analysis()
