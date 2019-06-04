@@ -5,17 +5,19 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
+# Fix that relative imports work for both notebooks and main methods
 try:
-    from .data import parse_to_df
-    from .stats import print_stats
+    from .data import parse_to_df, label_data
+    from .stats import print_confusion_matrix, confusion
 except ModuleNotFoundError:
-    from data import parse_to_df
-    from stats import print_stats
+    from data import parse_to_df, label_data
+    from stats import print_confusion_matrix, confusion
 
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
 path_testing = '../data/BATADAL_test.csv'
+sns.set(font_scale=1.5)
 
 
 def replace_pump_outliers(df, pumpname):
@@ -127,7 +129,7 @@ def train(df_n):
     return pca_project_fn
 
 
-def detect_with_pca(df_test, fn_project):
+def detect_with_pca(df_test, fn_project, setname="data"):
     # Project to the PCA space
     df_proj, df_yres = fn_project(df_test)
 
@@ -136,19 +138,21 @@ def detect_with_pca(df_test, fn_project):
 
     # Plot normal signal
     plt.figure()
-    sns.lineplot(df_test.index, df_proj['sq_mag'], label="magnitude")
-    plt.title("Signal vector magnitude", fontweight="bold")
+    sns.lineplot(df_test.index, df_proj['sq_mag'], label="Magnitude")
+    plt.title(f"Signal vector magnitude {setname}", fontweight="bold")
     plt.ylabel("Magnitude")
     plt.xlabel("Hours from T=0")
     plt.show()
 
     # Plot residual error
     plt.figure()
-    sns.lineplot(df_test.index, df_yres['sq_mag'], label='residual')
-    sns.lineplot(df_test.index, threshold, label='threshold', dashes=True)
-    plt.title("Residual vector magnitude", fontweight="bold")
+    sns.lineplot(df_test.index, df_yres['sq_mag'], label='Residual')
+    ax = sns.lineplot(df_test.index, threshold, label='Threshold', dashes=True)
+    ax.lines[1].set_linestyle(":")
+    plt.title(f"Residual vector magnitude {setname}", fontweight="bold")
     plt.ylabel("Magnitude")
     plt.xlabel("Hours from T=0")
+    plt.savefig(f"../plots/pca_res_{setname}")
     plt.show()
 
     # Return the attacks
@@ -156,9 +160,9 @@ def detect_with_pca(df_test, fn_project):
     return df_test[attacks]
 
 
-def plot_abnormalities():
+def plot_abnormalities(df_n):
     # Define data
-    df_n = parse_to_df(path_training_1)
+    # df_n = parse_to_df(path_training_1)
     df_n = normalize(df_n, replace_abnormal=False, scale=False)
 
     # Abnormality notes
@@ -176,32 +180,29 @@ def plot_abnormalities():
 
     plt.figure()
     sns.lineplot(df_n.index, df_n['f_pu6'], label='Flow P6')
-    sns.lineplot(df_n.index, df_n['s_pu6'], label='Suction P6')
+    sns.lineplot(df_n.index, df_n['s_pu6'], label='Switch P6')
     sns.lineplot(df_n.index, df_n['f_pu11'], label='Flow P11')
-    sns.lineplot(df_n.index, df_n['s_pu11'], label='Suction P11')
+    sns.lineplot(df_n.index, df_n['s_pu11'], label='Switch P11')
     plt.title("Abnormalities in training data", fontweight="bold")
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+    plt.savefig("../plots/pca_abnormalities")
     plt.show()
 
 
 if __name__ == '__main__':
-    sns.set()
-    # Plot the abnormalities in the training data which are set to the normal mean of the data
-    plot_abnormalities()
-
     # Define data
     df_normal = parse_to_df(path_training_1)
     df_a = parse_to_df(path_training_2)
     df_test = parse_to_df(path_testing)
 
+    # Plot the abnormalities in the training data which are set to the normal mean of the data
+    plot_abnormalities(df_normal)
+
     # Detect anomalies with PCA
     project_fn = train(df_normal)
-
-    # Training2 data set
-    trn_att = detect_with_pca(df_a, project_fn)
-    print_stats(df_a, trn_att.index)
-
-    # Test data set
-    tst_att = detect_with_pca(df_test, project_fn)
-    print_stats(df_test, tst_att.index)
+    trn = detect_with_pca(df_normal, project_fn, setname="normal training data")
+    trn_att = detect_with_pca(df_a, project_fn, setname="anomalous training data")
+    print_confusion_matrix(confusion(label_data(df_a), trn_att.index))
+    tst_att = detect_with_pca(df_test, project_fn, setname="testing data")
+    print_confusion_matrix(confusion(label_data(df_test), tst_att.index))

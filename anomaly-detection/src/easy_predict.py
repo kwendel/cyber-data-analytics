@@ -6,7 +6,11 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
-from .data import parse_to_df
+# Fix that relative imports work for both notebooks and main methods
+try:
+    from .data import parse_to_df
+except ModuleNotFoundError:
+    from data import parse_to_df
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
