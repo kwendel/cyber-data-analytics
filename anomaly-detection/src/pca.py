@@ -5,9 +5,13 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from data import parse_to_df
-from src.data import label_data
-from src.stats import print_confusion_matrix, confusion
+try:
+    from .data import parse_to_df, label_data
+    from .stats import print_confusion_matrix, confusion
+except ModuleNotFoundError:
+    from data import parse_to_df, label_data
+    from stats import print_confusion_matrix, confusion
+
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
