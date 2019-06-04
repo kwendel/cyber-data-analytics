@@ -6,11 +6,11 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 try:
-    from .data import parse_to_df, label_data
-    from .stats import print_confusion_matrix, confusion, detection_duration, print_precision_recall
+    from .data import parse_to_df
+    from .stats import print_stats
 except ModuleNotFoundError:
-    from data import parse_to_df, label_data
-    from stats import print_confusion_matrix, confusion, detection_duration, print_precision_recall
+    from data import parse_to_df
+    from stats import print_stats
 
 
 path_training_1 = '../data/BATADAL_training1.csv'
@@ -200,18 +200,8 @@ if __name__ == '__main__':
 
     # Training2 data set
     trn_att = detect_with_pca(df_a, project_fn)
-    conf_matrix = confusion(label_data(df_a), trn_att.index)
-    print_confusion_matrix(conf_matrix)
-    print_precision_recall(conf_matrix)
-    detections = detection_duration(label_data(df_a), trn_att.index)
-    for date in detections:
-        print(date, detections[date])
+    print_stats(df_a, trn_att.index)
 
     # Test data set
     tst_att = detect_with_pca(df_test, project_fn)
-    conf_matrix = confusion(label_data(df_test), tst_att.index)
-    print_confusion_matrix(conf_matrix)
-    print_precision_recall(conf_matrix)
-    detections = detection_duration(label_data(df_test), tst_att.index)
-    for date in detections:
-        print(date, detections[date])
+    print_stats(df_test, tst_att.index)

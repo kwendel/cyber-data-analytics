@@ -9,6 +9,17 @@ except (ImportError, ModuleNotFoundError):
     from data import get_attack_dates, label_data
 
 
+def print_stats(df: pd.DataFrame, flagged_index: pd.Int64Index):
+    conf_matrix = confusion(label_data(df), flagged_index)
+    print_confusion_matrix(conf_matrix)
+    print()
+    print_precision_recall(conf_matrix)
+    print()
+    detections = detection_duration(label_data(df), flagged_index)
+    for date in detections:
+        print(date, detections[date])
+
+
 def __get_df_and_flags(df: pd.DataFrame, flagged_indices: pd.Int64Index):
     flags = pd.Series(False, index=df.index)
     flags[flagged_indices] = True
