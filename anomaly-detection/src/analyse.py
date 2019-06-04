@@ -3,7 +3,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from .data import parse_to_df, select_between_datetime
+# Fix that relative imports work for both notebooks and main methods
+try:
+    from .data import parse_to_df, select_between_datetime
+except ModuleNotFoundError:
+    from data import parse_to_df, select_between_datetime
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
