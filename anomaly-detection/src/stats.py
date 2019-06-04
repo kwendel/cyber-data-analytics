@@ -29,6 +29,16 @@ def confusion(df: pd.DataFrame, flagged_indices: pd.Int64Index):
     return confusion_matrix(df['flag'], flags)
 
 
+def print_precision_recall(conf_matrix):
+    tp = conf_matrix[1][1]
+    fp = conf_matrix[0][1]
+    fn = conf_matrix[1][0]
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+
+    print(f"precision: {precision}\trecall:{recall}")
+
+
 def print_confusion_matrix(cm):
     labels = ['Normal', 'Attack']
     print(pd.DataFrame(cm, labels, labels))
