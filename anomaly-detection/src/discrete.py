@@ -10,10 +10,10 @@ from sklearn.preprocessing import StandardScaler
 # Fix that relative imports work for both notebooks and main methods
 try:
     from .data import parse_to_df, label_data
-    from .stats import print_confusion_matrix, confusion
+    from .stats import print_stats
 except ModuleNotFoundError:
     from data import parse_to_df, label_data
-    from stats import print_confusion_matrix, confusion
+    from stats import print_stats
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
@@ -204,12 +204,13 @@ if __name__ == '__main__':
 
     # Level T1
     trn_attacks = test_signal(df, df_a, 'l_t1', ngram=4, ngram_thr=20, discrete_thr=0.25)
-    print_confusion_matrix(confusion(label_data(df_a), trn_attacks.index))
+    print_stats(df_a, trn_attacks.index)
     tst_attacks = test_signal(df, df_test, 'l_t1', ngram=5, ngram_thr=20, discrete_thr=0.25)
-    print_confusion_matrix(confusion(label_data(df_test), tst_attacks.index))
+    print_stats(df_test, tst_attacks.index)
 
     # Switch pump 4
     trn_attacks = test_signal(df, df_a, 's_pu10', ngram=3, ngram_thr=10, discrete_thr=0.25)
-    print_confusion_matrix(confusion(label_data(df_a), trn_attacks.index))
+    print_stats(df_a, trn_attacks.index)
     tst_attacks = test_signal(df, df_test, 'f_pu1', ngram=3, ngram_thr=5, discrete_thr=0.25)
-    print_confusion_matrix(confusion(label_data(df_test), tst_attacks.index))
+    print_stats(df_test, tst_attacks.index)
+
