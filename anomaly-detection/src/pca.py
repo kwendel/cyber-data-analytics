@@ -5,7 +5,13 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from data import parse_to_df
+try:
+    from .data import parse_to_df
+    from .stats import print_stats
+except ModuleNotFoundError:
+    from data import parse_to_df
+    from stats import print_stats
+
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
@@ -65,7 +71,7 @@ def train(df_n):
     df_n = normalize(df_n)
 
     # Do PCA decomposition
-    pca = PCA()
+    pca = PCA(random_state=42)
     pca.fit(df_n)
 
     # Use k-1 principal components for reconstruction
@@ -191,5 +197,11 @@ if __name__ == '__main__':
 
     # Detect anomalies with PCA
     project_fn = train(df_normal)
+
+    # Training2 data set
     trn_att = detect_with_pca(df_a, project_fn)
+    print_stats(df_a, trn_att.index)
+
+    # Test data set
     tst_att = detect_with_pca(df_test, project_fn)
+    print_stats(df_test, tst_att.index)
