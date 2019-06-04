@@ -6,11 +6,16 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
-from data import parse_to_df
+# Fix that relative imports work for both notebooks and main methods
+try:
+    from .data import parse_to_df
+except ModuleNotFoundError:
+    from data import parse_to_df
 
 path_training_1 = '../data/BATADAL_training1.csv'
 path_training_2 = '../data/BATADAL_training2.csv'
 path_testing = '../data/BATADAL_test.csv'
+sns.set()
 
 
 def forward_validation(train, test, p):
@@ -100,9 +105,11 @@ def plot_predictions(x, test, predictions, title="Enter title"):
     plt.figure()
     sns.lineplot(x, test, label='Signal')
     sns.lineplot(x, predictions, label='Prediction')
-    plt.title(title)
+    plt.title(title, fontweight="bold")
     plt.xlabel("Hours from T=0")
     plt.ylabel("Signal value")
+    name = "_".join(title.split())
+    plt.savefig(f"../plots/{name}.png")
     plt.show()
 
 
@@ -127,7 +134,12 @@ def persistence_prediction():
 
     # Now show the actual value with the predicted value
     predictions = forward_validation(train, test, 24)
-    plot_predictions(test_range, test, predictions, title="Persistence prediction")
+
+    # Report performance
+    rmse = sqrt(mean_squared_error(test, predictions))
+    print(f"Regression RMSE={rmse}")
+
+    plot_predictions(test_range, test, predictions, title="Persistence prediction Pump 4")
 
 
 def regression_prediction():
@@ -156,10 +168,10 @@ def regression_prediction():
     rmse = sqrt(mean_squared_error(true, preds))
     print(f"Regression RMSE={rmse}")
 
-    plot_predictions(range(window, end), true, preds, title="Linear Regression predictions")
+    plot_predictions(range(window, end), true, preds, title="LR prediction for Pump 4")
 
 
 if __name__ == '__main__':
-    sns.set()
+    sns.set(font_scale=1.5)
     persistence_prediction()
     regression_prediction()
