@@ -1,5 +1,11 @@
+tqdm
 matplotlib
+scipy
 numpy
 scikit-learn
 pandas
 seaborn
+git+git://github.com/statsmodels/statsmodels@master#egg=statsmodels
+ipython
+jupyter
+jupyterlab

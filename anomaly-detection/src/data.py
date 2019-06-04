@@ -33,7 +33,7 @@ attack_dates_test = [
 ]
 
 
-def label_data(df: pd.DataFrame):
+def get_attack_dates(df: pd.DataFrame):
     if df['datetime'].iloc[0].year == 2016:
         dates = attack_dates_training2
     elif df['datetime'].iloc[0].year == 2017:
@@ -41,6 +41,11 @@ def label_data(df: pd.DataFrame):
     else:
         print("NO ATTACK LABELS FOR THIS DATASET")
         return
+    return dates
+
+
+def label_data(df: pd.DataFrame):
+    dates = get_attack_dates(df)
 
     df_datetime = df.set_index('datetime')
     flag = pd.Series(False, index=df_datetime.index)
