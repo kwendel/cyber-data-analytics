@@ -12,10 +12,10 @@ class CountMinSketch:
         if depth is not None and width is not None:
             self.depth = depth
             self.width = width
-        elif epsilon is not None and epsilon is not None:
+        elif epsilon is not None and delta is not None:
             self.width = int(ceil(e/epsilon))
             self.depth = int(ceil(log(1./delta)))
-            print(f"CM with width={self.width} depth={self.depth}")
+            print(f"CM with depth={self.depth} width={self.width}")
         else:
             raise Exception("Please supply the size or bounds of the CM sketch")
 
