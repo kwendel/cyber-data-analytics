@@ -1,8 +1,7 @@
-# %% Import
 from collections import defaultdict
 from hashlib import sha256
-from struct import unpack
 from math import ceil, e, log
+from struct import unpack
 
 import numpy as np
 
@@ -13,8 +12,8 @@ class CountMinSketch:
             self.depth = depth
             self.width = width
         elif epsilon is not None and delta is not None:
-            self.width = int(ceil(e/epsilon))
-            self.depth = int(ceil(log(1./delta)))
+            self.width = int(ceil(e / epsilon))
+            self.depth = int(ceil(log(1.0 / delta)))
             print(f"CM with depth={self.depth} width={self.width}")
         else:
             raise Exception("Please supply the size or bounds of the CM sketch")
@@ -69,15 +68,3 @@ class CountMinSketch:
 
     def __setitem__(self, key, value):
         return self.add(key, value)
-
-
-# %%
-test = CountMinSketch(epsilon=0.10, delta=0.10)
-test['banaan'] = 10
-test['gans'] = 1
-
-test[4] = 4
-
-print(test['banaan'])
-print(test['gans'])
-print(test[4])
