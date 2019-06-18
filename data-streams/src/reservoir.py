@@ -26,7 +26,7 @@ class Reservoir:
 
         # Iterate from the (k+1)th
         # element to nth element
-        while True:
+        for flow in self.generator:
             # Pick a random index
             # from 0 to i.
             j = random.randrange(i + 1)
@@ -35,9 +35,6 @@ class Reservoir:
             # present at the index
             # with new element from stream
             if j < k:
-                flow = next(self.generator)
-                if not flow:
-                    break
                 reservoir[j] = flow
             i += 1
 
