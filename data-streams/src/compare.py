@@ -1,25 +1,19 @@
-# %% Load the data
-from data import process_file
-
-data = process_file("data/capture20110812.pcap.netflow.labeled")
-
 # %% Init cm sketch
+import typing
+
+from data import process_file
 from sketch import CountMinSketch
 
-cm = CountMinSketch(epsilon=0.01, delta=0.01)
+gen = process_file("data/capture20110812.pcap.netflow.labeled")
 
-infected = "147.32.84.165"
-c = 0
-for f in data:
-    if infected in f.src:
-        print("added")
-        cm.add(f.dst)
-    elif infected in f.dst:
-        cm.add(f.src)
-        print("added")
 
-    c += 1
+def infected_filter() -> typing.Iterator[str]:
+    infected_ip = '147.32.84.165'
+    for flow in gen:
+        if infected_ip in flow.src:
+            yield flow.dst
+        elif infected_ip in flow.dst:
+            yield flow.src
 
-    if c == 1000:
-        break
 
+cm = CountMinSketch(epsilon=0.01, delta=0.01).analyse_stream(infected_filter())

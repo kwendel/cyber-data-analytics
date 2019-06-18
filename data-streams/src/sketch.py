@@ -1,3 +1,4 @@
+import typing
 from collections import defaultdict
 from hashlib import sha256
 from math import ceil, e, log
@@ -68,3 +69,9 @@ class CountMinSketch:
 
     def __setitem__(self, key, value):
         return self.add(key, value)
+
+    def analyse_stream(self, generator: typing.Iterator[str]):
+        for flow in generator:
+            self.add(flow)
+
+        return True
