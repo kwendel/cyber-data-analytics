@@ -81,4 +81,5 @@ class CountMinSketch:
         return self
 
     def get_distribution(self, items):
-        return {key: self.get(key) / self.counter for key in items}
+        # Turn the counts to frequencies rounded to 4 decimals after the comma
+        return {key: float("{0:4f}".format(self.get(key) / self.counter)) for key in items}

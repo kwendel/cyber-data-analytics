@@ -77,7 +77,5 @@ def get_most_frequent(generator, amount=10) -> dict:
 
     ips = Counter(items).most_common(n=amount)
 
-    # Turn the counts to frequencies
-    ips = {k: v / total for k, v in ips}
-
-    return ips
+    # Turn the counts to frequencies rounded to 4 decimals after the comma
+    return {k: float("{0:4f}".format(v / total)) for k, v in ips}
