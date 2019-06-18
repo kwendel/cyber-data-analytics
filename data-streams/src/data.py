@@ -6,18 +6,18 @@ from tqdm import tqdm
 
 
 class Flow:
-    def __init__(self, split):
-        self.start = datetime.strptime(f'{split[0]} {split[1]}', '%Y-%m-%d %H:%M:%S.%f')
-        self.duration = float(split[2])
-        self.protocol = split[3]
-        self.src = split[4]
-        self.dst = split[6]
-        self.flags = split[7]
-        self.tos = split[8]
-        self.packets = split[9]
-        self.bytes = split[10]
-        self.flows = split[11]
-        self.label = split[12]
+    def __init__(self, split_line: typing.List[str]):
+        self.start = datetime.strptime(f'{split_line[0]} {split_line[1]}', '%Y-%m-%d %H:%M:%S.%f')
+        self.duration = float(split_line[2])
+        self.protocol = split_line[3]
+        self.src = split_line[4].split(':')[0]
+        self.dst = split_line[6].split(':')[0]
+        self.flags = split_line[7]
+        self.tos = split_line[8]
+        self.packets = split_line[9]
+        self.bytes = split_line[10]
+        self.flows = split_line[11]
+        self.label = split_line[12]
 
     def __str__(self):
         return f"{self.src} -> {self.dst}"

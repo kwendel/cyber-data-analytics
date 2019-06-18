@@ -1,5 +1,6 @@
 import random
 import typing
+from collections import Counter
 
 # from src.data import Flow
 
@@ -11,7 +12,7 @@ class Reservoir:
 
     # A function to randomly select
     # k items from stream[0..n-1].
-    def selectKItems(self):
+    def select_items(self):
         i = 0
         k = self.size
         # index for elements
@@ -39,3 +40,8 @@ class Reservoir:
             i += 1
 
         return reservoir
+
+    def get_distribution(self):
+        reservoir = self.select_items()
+        ctr = Counter(reservoir)
+        return {x[0]: x[1]/self.size for x in ctr.most_common(10)}
