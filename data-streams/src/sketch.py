@@ -27,6 +27,8 @@ class CountMinSketch:
         # Function from Python hashlib
         self.hash_fn = sha256
 
+        self.counter = None
+
     def get_hashes(self, key):
         # Encode the input as UTF-8 byte string
         if type(key) is not str:
@@ -71,7 +73,12 @@ class CountMinSketch:
         return self.add(key, value)
 
     def analyse_stream(self, generator: typing.Iterator[str]):
+        self.counter = 0
         for flow in generator:
+            self.counter += 1
             self.add(flow)
 
-        return True
+        return self
+
+    def get_distribution(self, items):
+        return {key: self.get(key) / self.counter for key in items}
