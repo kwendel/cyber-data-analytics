@@ -1,77 +1,71 @@
+# %%
 from collections import Counter, OrderedDict
+from functools import wraps
 
 import matplotlib.pyplot as plt
 
 from data import process_file
 
 
-def normalize(data: dict):
-    c = sum(data.values(), 0.0)
+def counter(func):
+    @wraps(func)
+    def wrapper_counter(*args, **kwargs):
+        # Use the provided function to retrieve values and count them
+        res = Counter(func(*args, **kwargs))
 
-    for key in data:
-        data[key] /= c
+        # Normalize the data
+        c = sum(res.values(), 0.0)
+        for key in res:
+            res[key] /= c
 
-    return data
+        return res
+
+    return wrapper_counter
 
 
+@counter
 def count_protocol(data):
-    res = Counter()
-
     for i in data:
-        res.update({i.protocol: 1})
-
-    res = normalize(res)
-
-    return res
+        yield i.protocol
 
 
+@counter
+def count_duration(data):
+    for i in data:
+        duration = i.duration
+
+        if duration == 0.0:
+            yield "0"
+        elif 0.0 < duration <= 1.0:
+            yield "0-1"
+        elif 1.0 < duration <= 2.0:
+            yield "1-2"
+        elif 2.0 < duration <= 3.0:
+            yield "2-3"
+        elif 3.0 < duration <= 4.0:
+            yield "3-4"
+        else:
+            yield "4+"
+
+
+@counter
 def count_two(data):
-    res = Counter()
-
     for i in data:
         duration = i.duration
         protocol = i.protocol
 
         if duration == 0.0:
-            res.update({protocol + "-0": 1})
+            yield protocol + "-(0)"
         elif 0.0 < duration <= 1.0:
-            res.update({protocol + "-[0-1]": 1})
+            yield protocol + "-(0-1)"
         elif 1.0 < duration <= 2.0:
-            res.update({protocol + "-[1-2]": 1})
+            yield protocol + "-(1-2)"
         elif 2.0 < duration <= 3.0:
-            res.update({protocol + "-[2-3]": 1})
+            yield protocol + "-(2-3)"
         elif 3.0 < duration <= 4.0:
-            res.update({protocol + "-[3-4]": 1})
+            yield protocol + "-(3-4)"
         else:
-            res.update({protocol + "-4+": 1})
-
-    res = normalize(res)
-
-    return res
-
-
-def count_duration(data):
-    res = Counter()
-
-    for i in data:
-        duration = i.duration
-
-        if duration == 0.0:
-            res.update({"0": 1})
-        elif 0.0 < duration <= 1.0:
-            res.update({"0-1": 1})
-        elif 1.0 < duration <= 2.0:
-            res.update({"1-2": 1})
-        elif 2.0 < duration <= 3.0:
-            res.update({"2-3": 1})
-        elif 3.0 < duration <= 4.0:
-            res.update({"3-4": 1})
-        else:
-            res.update({"4+": 1})
-
-    res = normalize(res)
-
-    return res
+            yield protocol + "-(4+)"
 
 
 def plot_bar(keys, data, title, legend, rotation=0):
@@ -82,11 +76,6 @@ def plot_bar(keys, data, title, legend, rotation=0):
     i = 0
     for t in data:
         adjusted_xs = [x - 0.2 + 0.75 / l * i for x in xs]
-
-        # Set empty values
-        for k in keys:
-            if k not in t.keys():
-                t[k] = 0
 
         ax.bar(adjusted_xs, t.values(), width=0.25, align='center', alpha=0.5)
 
@@ -127,8 +116,18 @@ if __name__ == '__main__':
     infected_comb = count_two(infected)
     normal_comb = count_two(normal)
 
-    # Sort on dict keys
+    # Sort on dict keys alphabetically
     keys = sorted(list(set(list(infected_comb.keys()) + list(normal_comb.keys()))))
+
+    # Set empty keys
+    for k in keys:
+        if k not in infected_comb.keys():
+            infected_comb[k] = 0
+
+        if k not in normal_comb.keys():
+            normal_comb[k] = 0
+
+    # Now sort according to the keys, which is alphabetically
     infected_comb = OrderedDict(sorted(infected_comb.items()))
     normal_comb = OrderedDict(sorted(normal_comb.items()))
 
