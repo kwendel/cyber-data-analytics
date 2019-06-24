@@ -23,7 +23,7 @@ def plot_bar_tests(tests, title, legend):
     i += 1
     for distributions, means, errors in tests:
         adjusted_xs = [x - 0.3 + 0.6 / l * i for x in xs]
-        if errors != None:
+        if errors is not None:
             ax.bar(adjusted_xs, means, width=0.2, align='center', alpha=0.5, yerr=errors, ecolor='black', capsize=2)
         else:
             ax.bar(adjusted_xs, means, width=0.2, align='center', alpha=0.5)

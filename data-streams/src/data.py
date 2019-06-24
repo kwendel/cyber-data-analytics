@@ -63,36 +63,38 @@ class Flow:
         return f"{self.src} -> {self.dst}"
 
 
-def process_file(path: str) -> typing.Iterator[Flow]:
+def process_file(path: str, filter_fn: typing.Callable) -> typing.Iterator[Flow]:
     """
     Processes the file and emits Flow objects
     :param path: str
+    :param filter_fn: lambda function to filter
     """
 
     try:
         regex = re.compile('\\s+')
-        ips = get_infected(path)
         with open(path, 'r') as file:
             file.readline()  # skip header
             for line in tqdm(file):
-                for ip in ips:
-                    if ip in line:
-                        # process line
-                        yield Flow(regex.split(line))
+                if filter_fn(line):
+                    # process line
+                    yield Flow(regex.split(line))
     except (IOError, OSError) as err:
         print(err)
         print("Error opening / processing file")
 
 
 def infected_filter(path: str) -> typing.Iterator[str]:
-    generator = process_file(path)
     ips = get_infected(path)
+    if len(ips) > 1:
+        raise ValueError("Multiple IPS not supported")
+
+    infected_ip = ips[0]
+    generator = process_file(path, lambda l: infected_ip in l)
     for flow in generator:
-        for ip in ips:
-            if ip in flow.src:
-                yield flow.dst
-            elif ip in flow.dst:
-                yield flow.src
+        if infected_ip in flow.src:
+            yield flow.dst
+        elif infected_ip in flow.dst:
+            yield flow.src
 
 
 def get_most_frequent(generator, amount=10) -> dict:
