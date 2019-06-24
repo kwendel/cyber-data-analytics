@@ -1,2 +1,1 @@
-data/capture20110812.pcap.netflow.labeled
-
+data/*.pcap.netflow.labeled
