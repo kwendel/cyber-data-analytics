@@ -2,8 +2,6 @@ import random
 import typing
 from collections import Counter
 
-# from src.data import Flow
-
 
 class Reservoir:
     def __init__(self, generator: typing.Iterator[str], size: int):
@@ -44,4 +42,4 @@ class Reservoir:
     def get_distribution(self):
         reservoir = self.select_items()
         ctr = Counter(reservoir)
-        return {x[0]: x[1]/self.size for x in ctr.most_common(10)}
+        return {x[0]: x[1] / self.size for x in ctr.most_common(10)}
