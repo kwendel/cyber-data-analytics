@@ -4,7 +4,32 @@ from functools import wraps
 
 import matplotlib.pyplot as plt
 
-from data import process_file
+from data import process_file, Flow
+
+
+def discrete_duration(flow: Flow):
+    duration = flow.duration
+
+    if duration == 0.0:
+        return "0"
+    elif 0.0 < duration <= 1.0:
+        return "0-1"
+    elif 1.0 < duration <= 2.0:
+        return "1-2"
+    elif 2.0 < duration <= 3.0:
+        return "2-3"
+    elif 3.0 < duration <= 4.0:
+        return "3-4"
+    else:
+        return "4+"
+
+
+def discrete_protocol(flow: Flow):
+    return flow.protocol
+
+
+def discrete_flow(flow):
+    return f"{discrete_protocol(flow)}-({discrete_duration(flow)})"
 
 
 def counter(func):
@@ -26,46 +51,19 @@ def counter(func):
 @counter
 def count_protocol(data):
     for i in data:
-        yield i.protocol
+        yield discrete_protocol(i)
 
 
 @counter
 def count_duration(data):
     for i in data:
-        duration = i.duration
-
-        if duration == 0.0:
-            yield "0"
-        elif 0.0 < duration <= 1.0:
-            yield "0-1"
-        elif 1.0 < duration <= 2.0:
-            yield "1-2"
-        elif 2.0 < duration <= 3.0:
-            yield "2-3"
-        elif 3.0 < duration <= 4.0:
-            yield "3-4"
-        else:
-            yield "4+"
+        yield discrete_duration(i)
 
 
 @counter
 def count_two(data):
     for i in data:
-        duration = i.duration
-        protocol = i.protocol
-
-        if duration == 0.0:
-            yield protocol + "-(0)"
-        elif 0.0 < duration <= 1.0:
-            yield protocol + "-(0-1)"
-        elif 1.0 < duration <= 2.0:
-            yield protocol + "-(1-2)"
-        elif 2.0 < duration <= 3.0:
-            yield protocol + "-(2-3)"
-        elif 3.0 < duration <= 4.0:
-            yield protocol + "-(3-4)"
-        else:
-            yield protocol + "-(4+)"
+        yield discrete_flow(i)
 
 
 def plot_bar(keys, data, title, legend, rotation=0):
@@ -93,7 +91,7 @@ def plot_bar(keys, data, title, legend, rotation=0):
 
 if __name__ == '__main__':
     # %% Load the data and split on infected and botnet
-    data_path = "data/capture20110812.pcap.netflow.labeled"
+    data_path = "data/capture20110818.pcap.netflow.labeled"
     infected = list(process_file(data_path, lambda l: "Botnet" in l))
     normal = list(process_file(data_path, lambda l: "LEGITIMATE" in l))
 
