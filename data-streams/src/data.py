@@ -5,6 +5,30 @@ from datetime import datetime
 
 from tqdm import tqdm
 
+# The provided infected IP from the dataset
+infected_hosts = {
+    "capture20110812.pcap.netflow.labeled": [
+        "147.32.84.165"
+    ],
+    "capture20110818.pcap.netflow.labeled": [
+        "147.32.84.165",
+        "147.32.84.191",
+        "147.32.84.192",
+        "147.32.84.193",
+        "147.32.84.204",
+        "147.32.84.205",
+        "147.32.84.206",
+        "147.32.84.207",
+        "147.32.84.208",
+        "147.32.84.209"
+    ]
+}
+
+
+def get_infected(path: str) -> typing.List[str]:
+    file = path.split("/")[-1]
+    return infected_hosts[file]
+
 
 class Flow:
     def __init__(self, split_line: typing.List[str]):
@@ -39,14 +63,11 @@ class Flow:
         return f"{self.src} -> {self.dst}"
 
 
-# The provided infected IP from the dataset
-INFECTED_IP = '147.32.84.165'
-
-
-def process_file(path: str) -> typing.Iterator[Flow]:
+def process_file(path: str, filter_fn: typing.Callable) -> typing.Iterator[Flow]:
     """
     Processes the file and emits Flow objects
     :param path: str
+    :param filter_fn: lambda function to filter
     """
 
     try:
@@ -54,7 +75,7 @@ def process_file(path: str) -> typing.Iterator[Flow]:
         with open(path, 'r') as file:
             file.readline()  # skip header
             for line in tqdm(file):
-                if INFECTED_IP in line:
+                if filter_fn(line):
                     # process line
                     yield Flow(regex.split(line))
     except (IOError, OSError) as err:
@@ -63,11 +84,16 @@ def process_file(path: str) -> typing.Iterator[Flow]:
 
 
 def infected_filter(path: str) -> typing.Iterator[str]:
-    generator = process_file(path)
+    ips = get_infected(path)
+    if len(ips) > 1:
+        raise ValueError("Multiple IPS not supported")
+
+    infected_ip = ips[0]
+    generator = process_file(path, lambda l: infected_ip in l)
     for flow in generator:
-        if INFECTED_IP in flow.src:
+        if infected_ip in flow.src:
             yield flow.dst
-        elif INFECTED_IP in flow.dst:
+        elif infected_ip in flow.dst:
             yield flow.src
 
 
