@@ -1,6 +1,6 @@
 import re
 import typing
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 
 from tqdm import tqdm
@@ -24,10 +24,29 @@ infected_hosts = {
     ]
 }
 
+normal_hosts = {
+    "capture20110812.pcap.netflow.labeled": [
+        None,  # TODO: add if needed
+    ],
+    "capture20110818.pcap.netflow.labeled": [
+        "147.32.84.170",
+        "147.32.84.134",
+        "147.32.84.164",
+        "147.32.87.36",
+        "147.32.80.9",
+        "147.32.87.11"
+    ]
+}
+
 
 def get_infected(path: str) -> typing.List[str]:
     file = path.split("/")[-1]
     return infected_hosts[file]
+
+
+def get_normal(path: str) -> typing.List[str]:
+    file = path.split("/")[-1]
+    return normal_hosts[file]
 
 
 class Flow:
@@ -95,6 +114,22 @@ def infected_filter(path: str) -> typing.Iterator[str]:
             yield flow.dst
         elif infected_ip in flow.dst:
             yield flow.src
+
+
+def split_on_ips(data: list, ips: list) -> dict:
+    result = defaultdict(list)
+
+    for d in data:
+        src = d.src
+        dst = d.dst
+
+        if src in ips:
+            result[src].append(d)
+
+        if dst in ips:
+            result[dst].append(d)
+
+    return result
 
 
 def get_most_frequent(generator, amount=10) -> dict:
