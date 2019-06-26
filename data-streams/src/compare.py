@@ -9,8 +9,6 @@ from data import infected_filter, get_most_frequent
 from reservoir import Reservoir
 from sketch import CountMinSketch
 
-data_path = "../data/capture20110812.pcap.netflow.labeled"
-
 
 def plot_bar_tests(tests, title, legend):
     i = 0
@@ -124,6 +122,7 @@ def timing_test(fn, runs=10):
 if __name__ == '__main__':
     # %%
     # Count the real infected connections that were made to or from the host
+    data_path = "data/capture20110812.pcap.netflow.labeled"
     print('Compute Real Distribution')
     real_distribution, _ = test_normal()
 
