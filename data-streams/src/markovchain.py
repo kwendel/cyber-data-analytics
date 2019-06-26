@@ -1,6 +1,8 @@
 # %%
 from collections import OrderedDict, Counter
+from copy import deepcopy
 from functools import reduce
+from random import random
 
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -135,7 +137,7 @@ if __name__ == '__main__':
     y_pred = markov.predict_all(normal_hosts + infected_hosts[1:])
     print(confusion_matrix(y_true, y_pred))
 
-    # Note: it predicts the probabilites of each state - thus Protocol and duration
+    # Note: it predicts the probabilites of each state - thus Protocol+duration
     # Infected hosts match because they use ICMP and small duration
     # Normal hosts dont match because they use TCP and longer duration
 
@@ -144,8 +146,25 @@ if __name__ == '__main__':
     y_true = [False] * len(normal_hosts) + [True] * (len(infected_hosts) - 1)
     for i, h in enumerate(infected_hosts):
         markov = MarkovChain(states, h)
-        y_pred = markov.predict_all(normal_hosts + infected_hosts[:i] + infected_hosts[i+1:])
+        y_pred = markov.predict_all(normal_hosts + infected_hosts[:i] + infected_hosts[i + 1:])
         print(confusion_matrix(y_true, y_pred))
 
+    # %% Adversial example
 
+    markov = MarkovChain(states, infected_hosts[0])
+    # See the predictions before changing
+    print(f"Original -- infected={markov.predict(infected_hosts[3])}")
+
+    # Take a normal sequence (copy to avoid changing the original data)
+    _, adv_netflows = deepcopy(infected_hosts[3])
+
+    # Change 5% for the ICMP pings to TCP connections
+    for n in adv_netflows:
+        if n.protocol == 'ICMP' and n.duration == 0:
+            r = random()
+            if r < 0.05:
+                n.protocol = "TCP"
+
+    # See how the profiler classifies it
+    print(f"Adverserial -- infected={markov.predict((None, adv_netflows))}")
 
