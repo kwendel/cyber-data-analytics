@@ -1,15 +1,13 @@
-# %% Init cm sketch
+# %%
 import random
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from reservoir import Reservoir
-from sketch import CountMinSketch
 
 from data import infected_filter, get_most_frequent
-
-data_path = "../data/capture20110812.pcap.netflow.labeled"
+from reservoir import Reservoir
+from sketch import CountMinSketch
 
 
 def plot_bar_tests(tests, title, legend):
@@ -44,6 +42,17 @@ def plot_bar_tests(tests, title, legend):
         print(t[0], t[1])
 
 
+# %% Methods to perform the analysis of the dataset
+# Count the real infected connections that were made to or from the host
+def test_normal():
+    start = time.time()
+    filter = infected_filter(data_path)
+    dist = get_most_frequent(filter)
+    real_time = time.time() - start
+
+    return dist, real_time
+
+
 # CountMinSketch
 def test_cm(epsilon, delta):
     start = time.time()
@@ -69,7 +78,7 @@ def test_reservoir(size):
     return res_distribution, elapsed
 
 
-# %%
+# %% Methods for testing
 def run_multiple(runs, func):
     distributions = {}
 
@@ -99,12 +108,23 @@ def run_multiple(runs, func):
     return distributions, means, errors
 
 
+# Run a function multiple times and time it
+def timing_test(fn, runs=10):
+    times = list()
+
+    for _ in range(runs):
+        _, t = fn()
+        times.append(t)
+
+    return np.mean(times), np.std(times)
+
+
 if __name__ == '__main__':
     # %%
     # Count the real infected connections that were made to or from the host
+    data_path = "data/capture20110812.pcap.netflow.labeled"
     print('Compute Real Distribution')
-    filter = infected_filter(data_path)
-    real_distribution = get_most_frequent(filter)
+    real_distribution, _ = test_normal()
 
     # %%
     print('Reservoir Tests')
@@ -124,4 +144,15 @@ if __name__ == '__main__':
         run_multiple(1, lambda: test_cm(0.01, 0.01)),
     ]
     # %%
-    plot_bar_tests(countmin_tests, title='CountMinSketch Tests', legend=('Real', '(0.25, 0.25)', '(0.1, 0.1)', '(0.01, 0.01)'))
+    plot_bar_tests(countmin_tests, title='CountMinSketch Tests',
+                   legend=('Real', '(0.25, 0.25)', '(0.1, 0.1)', '(0.01, 0.01)'))
+
+    # %% Run a method multiple times and time it
+    print('Timing Tests')
+    normal_t, normal_std = timing_test(lambda: test_normal())
+    cm_t_1, cm_std_1 = timing_test(lambda: test_cm(0.25, 0.25))
+    cm_t_2, cm_std_2 = timing_test(lambda: test_cm(0.1, 0.1))
+    cm_t_3, cm_std_3 = timing_test(lambda: test_cm(0.01, 0.01))
+    res_t_1, res_std_1 = timing_test(lambda: test_reservoir(100))
+    res_t_2, res_std_2 = timing_test(lambda: test_reservoir(1000))
+    res_t_3, res_std_3 = timing_test(lambda: test_reservoir(10000))

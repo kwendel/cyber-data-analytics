@@ -98,8 +98,8 @@ def process_file(path: str, filter_fn: typing.Callable) -> typing.Iterator[Flow]
                     # process line
                     yield Flow(regex.split(line))
     except (IOError, OSError) as err:
-        print(err)
-        print("Error opening / processing file")
+        print("Error opening / processing file: check if the path is correct!")
+        raise err
 
 
 def infected_filter(path: str) -> typing.Iterator[str]:
