@@ -33,6 +33,10 @@ def discrete_flow(flow):
 
 
 def counter(func):
+    """
+    Count the occurences of each unique element in the data of the provided function
+    Function decorator pattern: https://realpython.com/primer-on-python-decorators/
+    """
     @wraps(func)
     def wrapper_counter(*args, **kwargs):
         # Use the provided function to retrieve values and count them
@@ -66,28 +70,31 @@ def count_two(data):
         yield discrete_flow(i)
 
 
-def plot_bar(keys, data, title, legend, rotation=0):
+# %%
+def plot_bar(keys, data, title, legend, rotation=0, figsize=(6.4, 4.8)):
     l = len(data)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figsize)
 
     xs = range(len(keys))
     i = 0
     for t in data:
         adjusted_xs = [x - 0.2 + 0.75 / l * i for x in xs]
-
         ax.bar(adjusted_xs, t.values(), width=0.25, align='center', alpha=0.5)
 
         i += 1
     ax.set_xticks(xs)
     ax.set_xticklabels(keys, rotation=rotation, ha='right')
-    ax.set_ylabel('Normalized counts')
-    ax.set_title(f'{title}: Infected vs Normal')
+    ax.set_ylabel('Percentage of class')
+    ax.set_title(f'{title}: Normal vs Infected hosts')
     ax.yaxis.grid(True)
     ax.legend(legend)
     # Save the figure and show
+    plt.savefig(f"figs/{title}.png")
     plt.tight_layout()
     plt.show()
 
+
+# %%
 
 if __name__ == '__main__':
     # %% Load the data and split on infected and botnet
@@ -107,7 +114,7 @@ if __name__ == '__main__':
     # %% Visualise the duration
     plot_bar(["0", "0-1", "1-2", "2-3", "3-4", "4+"],
              [count_duration(normal), count_duration(infected)],
-             "Duration",
+             "Discrete Duration",
              ["Normal", "Infected"])
 
     # %% Now combine the features
@@ -133,4 +140,6 @@ if __name__ == '__main__':
              [normal_comb, infected_comb],
              "Discretized",
              ["Normal", "Infected"],
-             rotation=30)
+             rotation=30,
+             figsize=(12.8, 4.8)
+             )
