@@ -3,6 +3,7 @@ from collections import OrderedDict, Counter
 from functools import reduce
 
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 from data import process_file, split_on_ips, get_infected, get_normal
 from flow_discretization import discrete_flow, count_two
@@ -60,7 +61,7 @@ def count_to_prob(transitions):
 
 class MarkovChain:
 
-    def __init__(self, states, infected_data: tuple, significant_level=0.05):
+    def __init__(self, states: list, infected_data: tuple, significant_level=0.05):
         self.states = states
         self.state_len = len(states)
         self.alpha = significant_level  # Standard significant level of 5%
@@ -72,7 +73,7 @@ class MarkovChain:
         # Get the transition matrix based on the infected host
         trans = get_transitions(states, seq)
         self.transition = count_to_prob(trans)
-        self.initial_probs = get_initial_probs(states, seq)
+        # self.initial_probs = get_initial_probs(states, seq)
 
     def _chain(self, start_state, length):
         # Compute the markov property x(n+1) = x(n) * P
@@ -90,21 +91,23 @@ class MarkovChain:
         start = np.full(self.state_len, fill_value=(1 / self.state_len))  # Start with equal probability for each state
         pred = self._chain(start, len(seq))  # Simulate the markov property for sequence length
 
-        # Ignore probabilities smaller than 5% and see if the prediction matches the real values
-        significant_start = initial_probs > self.alpha
-        significant_pred = pred > self.alpha
-        all_equal = np.array_equal(significant_start, significant_pred)
+        # Ignore probabilities smaller than 5%
+        pred[pred < self.alpha] = 0.0
+        initial_probs[initial_probs < self.alpha] = 0.0
 
-        # Return the predictions
-        return {
-            'Infected': all_equal,
-            'Normal': not all_equal
-        }
+        # Compare if the probabilites match with a max difference of 0.05
+        is_infected = np.allclose(pred, initial_probs, rtol=0, atol=self.alpha)
+
+        return is_infected
+
+    def predict_all(self, hosts: list):
+        return [self.predict(host) for host in hosts]
 
 
+# %%
 if __name__ == '__main__':
     # %% Load the data and split on infected and botnet
-    data_path = "../data/capture20110818.pcap.netflow.labeled"
+    data_path = "data/capture20110818.pcap.netflow.labeled"
     infected = list(process_file(data_path, lambda l: "Botnet" in l))
     normal = list(process_file(data_path, lambda l: "LEGITIMATE" in l))
 
@@ -128,18 +131,21 @@ if __name__ == '__main__':
 
     # %% Predict all other hosts
 
-    for n in normal_hosts:
-        uid, _ = n
-        print(f"IP : {uid} -- Infected : {False}")
-        print(markov.predict(n))
-        print("\n")
-
-    for i in infected_hosts:
-        uid, _ = i
-        print(f"IP : {uid} -- Infected : {True}")
-        print(markov.predict(i))
-        print("\n")
+    y_true = [False] * len(normal_hosts) + [True] * (len(infected_hosts) - 1)
+    y_pred = markov.predict_all(normal_hosts + infected_hosts[1:])
+    print(confusion_matrix(y_true, y_pred))
 
     # Note: it predicts the probabilites of each state - thus Protocol and duration
     # Infected hosts match because they use ICMP and small duration
     # Normal hosts dont match because they use TCP and longer duration
+
+    # %% Train with different hosts
+
+    y_true = [False] * len(normal_hosts) + [True] * (len(infected_hosts) - 1)
+    for i, h in enumerate(infected_hosts):
+        markov = MarkovChain(states, h)
+        y_pred = markov.predict_all(normal_hosts + infected_hosts[:i] + infected_hosts[i+1:])
+        print(confusion_matrix(y_true, y_pred))
+
+
+
